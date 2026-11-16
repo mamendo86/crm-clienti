@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#5C0716">
+<link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<title>Rappel</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--r:#C8102E;--d:#5C0716;--g:#B08A4E;--c:#FAF8F5;--t:#241a1c;--m:#7a6d6f;--l:#e6dfd6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--c);color:var(--t);font:15px/1.4 Inter,system-ui,sans-serif;padding-bottom:76px}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0}
+header{background:var(--d);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:baseline}
+header h1{font-size:21px}header span{color:var(--g);font-size:13px}
+main{padding:14px;max-width:640px;margin:auto}
+.card{background:#fff;border:1px solid var(--l);border-radius:10px;padding:14px;margin-bottom:12px}
+.big{font-family:Fraunces,Georgia,serif;font-size:32px;color:var(--r);margin:2px 0 8px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--l)}
+.row:last-child{border:0}.row span{color:var(--m)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td,th{padding:6px 3px;text-align:right;border-bottom:1px solid var(--l)}
+td:first-child,th:first-child{text-align:left}th{color:var(--m);font-weight:600}
+input,select,button{font:inherit;width:100%;padding:11px;border:1px solid #cfc6bb;border-radius:8px;background:#fff;margin:4px 0 10px}
+button{background:var(--r);color:#fff;border:0;font-weight:600}
+button.s{background:#fff;color:var(--r);border:1px solid var(--r)}
+label{font-size:13px;color:var(--m)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid var(--l);padding-bottom:env(safe-area-inset-bottom)}
+nav a{flex:1;text-align:center;padding:13px 0;color:var(--m);font-weight:600;font-size:11.5px}
+nav a.on{color:var(--r);box-shadow:inset 0 3px var(--r)}
+.hide{display:none}.seg{display:flex;gap:8px}
+.pol{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--l)}
+.pol small{color:var(--m);display:block}
+.eye{background:none!important;border:0!important;box-shadow:none!important;padding:4px 6px!important;width:auto!important;margin:0 0 0 4px!important;color:var(--m)!important;display:inline-flex;vertical-align:middle;cursor:pointer}
+.eye svg{width:20px;height:20px}
+.gd{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2e9e5b;margin-right:6px;vertical-align:middle}
+.pol.man{background:#fdeeee;border-radius:8px;padding-left:8px;padding-right:6px}
+.x{background:none;border:0;color:var(--r);width:auto;padding:10px 12px;margin:0}
+.warn{background:#fdecee;color:var(--d);padding:10px;border-radius:8px;margin-bottom:10px;font-size:13px}
+.pr{display:grid;grid-template-columns:1.6fr .9fr .8fr 34px 30px;gap:6px;align-items:center}
+.pr input,.pr select{margin:2px 0;padding:8px}
+button:active{transform:scale(.97);filter:brightness(.92)}
+*{-webkit-tap-highlight-color:transparent}button,input,select,nav a{touch-action:manipulation}input,select{font-size:16px}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));background:var(--d);color:#fff;padding:12px 14px;border-radius:10px;display:none;z-index:9;font-size:14px;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 4px 14px #0004}
+#toast.on{display:flex}#toast.err{background:#a30d1f}#toast button{width:auto;margin:0;padding:6px 12px;background:#fff;color:var(--d)}
+input[type=checkbox]{width:22px;height:22px;margin:0;padding:0;flex:none;accent-color:var(--r)}
+.ck{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--l);font-size:14px}
+.ck input{margin-top:2px}
+summary{padding:10px 0;color:var(--r);font-weight:600;cursor:pointer}
+details.card>summary{padding:0}
+</style></head>
+<body>
+<header><h1>Rappel</h1><span id="hy"></span></header>
+<main>
+<section id="v0"></section><section id="v1" class="hide"></section>
+<section id="v2" class="hide"></section><section id="v3" class="hide"></section><section id="v4" class="hide"></section>
+</main>
+<div id="toast"></div><nav><a data-v="0" class="on">Riepilogo</a><a data-v="1">Polizze</a><a data-v="2">Prodotti</a><a data-v="3">Impostaz.</a><a data-v="4">Provvigioni</a></nav>
+<script>
+const $=s=>document.querySelector(s),
+E=n=>gr(n,0)+'\u00a0€',
+Pc=n=>(+n||0).toFixed(0)+'%',
+h=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>'&#'+c.charCodeAt()+';'),
+MS=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
+FR={Unico:1,Annuale:1,Semestrale:2,Trimestrale:4,Mensile:12},
+SEN=[{n:'≤ 1 anno',is:3450,v:700,d:330},{n:'1-3 anni',is:7700,v:1700,d:790},{n:'3-5 anni',is:8270,v:2000,d:850},{n:'Oltre 5 anni',is:9100,v:2750,d:910}],
+AL=[[100,0],[115,.0125],[150,.025],[200,.04],[225,.05],[250,.055],[275,.065],[300,.09],[350,.095],[400,.1],[450,.11],[500,.1125],[600,.115],[1e9,.12]],
+VC=[['Risparmio alto valore consulenziale',1.2,0],['Risparmio',1,0],['Previdenza',1,0],['Protezione',4,0],['Investimento alto valore consulenziale',.13,1],['Investimento',.06,1]],
+SEED=VC.map(c=>({nome:c[0],tipo:'V',pond:c[1],inv:c[2],cat:c[0],plafP:'',plafR:''}))
+ .concat([{nome:'Danni',tipo:'D',pond:3,inv:0,cat:'',plafP:'',plafR:''},{nome:'RC Professionali / PMI GeneraImpresa / CyberLion',tipo:'D',pond:3,inv:0,cat:'',plafP:1000,plafR:''}]);
+let S={pol:[],prod:[],imp:{}},ed=null,delId=null,selM=new Date().getMonth();
+const CFG=()=>({u:localStorage.rpU||'',k:localStorage.rpK||''});
+const api=async(fn,...a)=>{const c=CFG();if(!c.u)throw new Error('Collegamento non configurato');
+ const r=await fetch(c.u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn,a,k:c.k})});
+ const j=await r.json();if(!j.ok)throw new Error(j.e);return j.d};
+const aliq=r=>!isFinite(r)||r<100?0:(AL.find(x=>r<=x[0])||AL[13])[1];
+const mult=(rd,al)=>rd<100?0:rd<=140?(al>.04?.8:.6):rd<=190?1:rd<=250?1.1:rd<=300?1.15:rd<=350?1.2:1.25;
+const cyr=new Date().getFullYear();
+const pmap=v=>{try{const m=typeof v=='string'?JSON.parse(v):v;return m&&typeof m=='object'?m:{}}catch(e){return{}}};
+const yrec=a=>{try{const v=JSON.parse(S.imp['y'+a]||'null');return v&&typeof v=='object'?v:null}catch(e){return null}};
+const legacy=()=>({sen:S.imp.sen,apQ:S.imp.apQ,apA:S.imp.apA,presidio:pmap(S.imp.presidio)});
+const hasRec=()=>Object.keys(S.imp).some(k=>/^y\d{4}$/.test(k));
+const I=a0=>{const cur=+S.imp.anno||cyr,a=+a0||cur,r=yrec(a)||(!hasRec()&&a==cur?legacy():{});
+ return{anno:a,sen:r.sen!==''&&r.sen!=null&&SEN[+r.sen]?+r.sen:1,apQ:+r.apQ||0,apA:+r.apA||0,presM:pmap(r.presidio)}};
+const presTo=(M,k)=>Object.keys(M).filter(b=>+b<=k).reduce((a,b)=>a+(+M[b]||0),0);
+const N=v=>+v||0;
+function gr(n,d){n=+n||0;const f=Math.abs(n).toFixed(d),[i,x]=f.split('.');return(n<0&&+f?'-':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(x?','+x:'')}
+const pa=v=>{v=String(v==null?'':v).trim().replace(/[^\d.,\-]/g,'');if(v===''||v=='-')return'';if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(/^-?\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');const n=+v;return isFinite(n)?n:''};
+const fIt=v=>{if(v===''||v==null||!isFinite(+v))return'';const n=Math.round(+v*100)/100,a=Math.abs(n),[i,d]=String(a).split('.');return(n<0?'-':'')+i.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(d?','+d:'')};
+function am(e,ev){let v=e.value;if(ev&&ev.inputType=='insertFromPaste'){const n=pa(v);e.value=fIt(n);return}
+ v=v.replace(/[^\d.,]/g,'');const c=v.indexOf(',');let ip,dp=null;
+ if(c>=0){ip=v.slice(0,c).replace(/\./g,'');dp=v.slice(c+1).replace(/[.,]/g,'').slice(0,2)}else ip=v.replace(/\./g,'');
+ ip=ip.replace(/^0+(?=\d)/,'');e.value=ip.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(dp!=null?','+dp:'')}
+function isPol(p){if(p.isP!==''&&p.isP!=null&&isFinite(+p.isP))return{is:N(p.isP),ra:N(p.isR)+N(p.incNC)+N(p.maggAgg),n:1};
+ const i=(p.prata===''||p.prata==null)?N(p.importo):N(p.prata),w=N(p.pond);
+ if(p.tipo=='V'){const x=i*w,n=FR[p.fraz]||1;return{is:x,ra:x/n,n}}
+ const s=+p.sost||0;let b=i-s,x,r=(i-s+.1*s)*w*(+p.magg?1.1:1);
+ if(+p.plafP)b=Math.min(b,+p.plafP);x=b*w;if(+p.plafR)r=Math.min(r,+p.plafR);return{is:x,ra:r,n:1}}
+function calc(yy){const o=I(yy),sn=SEN[o.sen],y=String(o.anno),
+ is=Array(12).fill(0),ra=is.slice(),iv=is.slice(),id=is.slice();
+ S.pol.filter(p=>String(p.data).startsWith(y)).forEach(p=>{
+  const m=+String(p.data).slice(5,7)-1,c=isPol(p);if(!(m>=0&&m<12))return;is[m]+=c.is;
+  if(p.tipo=='V'){if(!+p.inv)iv[m]+=c.is;for(let k=0;k<c.n;k++){const q=m+k*12/c.n;if(q<12)ra[q]+=c.ra}}
+  else{id[m]+=c.is;ra[m]+=c.ra}});
+ let c=0,cr=0,cv=0,cd=0,paid=0;const out=[];
+ for(let m=0;m<12;m++){c+=is[m];cr+=ra[m];cv+=iv[m];cd+=id[m];const k=m+1,
+  r=c/(sn.is*k)*100,rv=cv/(sn.v*k)*100,rd=cd/(sn.d*k)*100,al=aliq(r),
+  pk=presTo(o.presM,k),crn=Math.max(0,cr-pk),mu=rv>=100&&rd>=100?mult(rd,al):0,mat=crn*al*mu,net=mat>6e4?6e4+(mat-6e4)/2:mat,
+  da=Math.max(0,net-paid),pp=paid;if(k%2==0)paid+=da;
+  out.push({m,is:is[m],ra:ra[m],c,cr,crn,pk,r,rv,rd,al,mu,mat,net,da,pp})}
+ return out}
+let POP=0;
+const hs=(o,rep)=>{try{rep?history.replaceState(o,''):history.pushState(o,'')}catch(e){}},bk=k=>{try{if(history.state&&history.state[k])history.back()}catch(e){}};
+window.addEventListener('popstate',e=>{const st=e.state||{v:0};let ch=false;POP=1;
+ if(!st.f&&ed){if(BZ.d){bzWrite();toast('Bozza conservata: la ritrovi alla prossima apertura')}ed=null;ch=true}if(!st.im&&IM&&!IM.busy){IM=null;ch=true}
+ show(+st.v||0);if(ch)lst();POP=0});
+function show(v){v=+v;if(!POP){const st=history.state||{v:0};if(st.v!=v)hs({v})}
+ document.querySelectorAll('main section').forEach((s,i)=>s.classList.toggle('hide',i!=v));
+ document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v==v))}
+document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>show(a.dataset.v));
+const keep=()=>{try{localStorage.rpProd=JSON.stringify(S.prod)}catch(e){}};
+function set(r,fresh){S={pol:r.pol||[],prod:r.prod||[],imp:r.imp||{}};
+ {const y=new Date().getFullYear(),a=I().anno;selM=a<y?11:a>y?0:(new Date().getMonth()%2?new Date().getMonth():Math.max(0,new Date().getMonth()-1))}
+ if(!fresh);else if(S.prod.length)keep();
+ else{let L=[];try{L=JSON.parse(localStorage.rpProd||'[]')}catch(e){}
+  if(S.imp.seed&&L.length){S.prod=L;enq('saveProdotti',[S.prod],'prod')}
+  else if(!S.imp.seed){S.prod=SEED.map(x=>({...x}));S.imp.seed='1';enq('saveProdotti',[S.prod],'prod');enq('saveImp',[{seed:'1'}],'seed')}}
+ render()}
+function render(){sync();rep();if(!ed&&!IM)lst();prd();imp();pvt();try{localStorage.rpCache=JSON.stringify(S)}catch(e){}}
+let HID=(()=>{try{return localStorage.rpHide==='1'}catch(e){return false}})();
+function tgH(){HID=!HID;try{localStorage.rpHide=HID?'1':'0'}catch(e){}rep()}
+const EYE_O='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',EYE_C='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.9 10.9 0 0 1 12 19C5 19 1 12 1 12a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.8 9.8 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M1 1l22 22"/></svg>';
+function rep(){const o=I(),MK=v=>HID?'•••••':E(v),D=calc(),x=D[selM],ap=o.apQ*o.apA/100,sn=SEN[o.sen],bim=(selM+1)%2==0;
+ $('#v0').innerHTML=`<label>Anno di rappel</label><select onchange="setAnno(this.value)">${yearsL().map(y=>`<option${y==o.anno?' selected':''}>${y}</option>`).join('')}</select><label>Situazione a fine</label><select onchange="selM=+this.value;rep()">${MS.map((m,i)=>`<option value="${i}"${i==selM?' selected':''}>${m}</option>`).join('')}</select>
+ <div class="card"><label>Rappel da liquidare ${bim?'a questo bimestre':'al prossimo bimestre'}<button class="eye" onclick="tgH()" aria-label="${HID?'Mostra importi':'Nascondi importi'}">${HID?EYE_C:EYE_O}</button></label><div class="big">${MK(x.da+ap)}</div>
+ ${x.mu==0?'<div class="warn">Soglia non raggiunta: servono Resa Vita (escl. investimento) e Resa Danni almeno al 100%.</div>':''}
+ <div class="row"><span>Rappel maturato (dopo plafond)</span><b>${MK(x.net)}</b></div>
+ <div class="row"><span>Già liquidato</span><b>${MK(x.pp)}</b></div>
+ <div class="row"><span>Incentivo anno precedente</span><b>${MK(ap)}</b></div></div>
+ <div class="card"><h2>Rese e aliquota</h2>
+ <div class="row"><span>Resa Indice Sintetico</span><b>${Pc(x.r)}</b></div>
+ <div class="row"><span>Resa Vita (escl. inv.)</span><b>${Pc(x.rv)}</b></div>
+ <div class="row"><span>Resa Danni</span><b>${Pc(x.rd)}</b></div>
+ <div class="row"><span>Aliquota base</span><b>${(x.al*100).toFixed(2)}%</b></div>
+ <div class="row"><span>Moltiplicatore Danni</span><b>${Pc(x.mu*100)}</b></div>
+ <div class="row"><span>IS di rata progressivo</span><b>${E(x.cr)}</b></div>
+ ${(()=>{const k=selM+1,kb=k%2==0?k:k+1;return`<div class="row" style="align-items:center"><span>Presidio Incassi DNA €<small style="display:block;color:var(--m)">bimestre di ${MS[kb-1]}${kb>k?' (conta da quel mese)':''}</small></span><input type="text" inputmode="decimal" class="amt" value="${fIt(o.presM[kb])}" placeholder="0" oninput="am(this,event)" onchange="sp_(${kb},this.value)" style="width:120px;margin:0;text-align:right"></div>
+ <div class="row"><span>Presidio sottratto fino a ${MS[selM]}</span><b>${E(x.pk)}</b></div>`})()}
+ <div class="row"><span><b>IS di rata definitivo</b></span><b>${E(x.crn)}</b></div>
+ <div class="row"><span>IS progressivo</span><b>${E(x.c)}</b></div></div>
+ <div class="card"><h2>Mese per mese</h2><table><tr><th>Mese</th><th>IS</th><th>Rata</th><th>Resa</th><th>Rappel</th></tr>
+ ${D.map(d=>`<tr><td>${MS[d.m].slice(0,3)}</td><td>${E(d.is)}</td><td>${E(d.ra)}</td><td>${Pc(d.r)}</td><td>${MK(d.net)}</td></tr>`).join('')}</table>
+ <p style="font-size:12px;color:var(--m)">Programma mensile IS ${E(sn.is)} · Vita ${E(sn.v)} · Danni ${E(sn.d)}. Le rate Vita frazionate si considerano incassate alle scadenze previste.</p></div>`}
+const MISS=()=>{try{return new Set(JSON.parse(localStorage.rpMiss||'[]'))}catch(e){return new Set()}};
+const isImp=p=>p.src=='imp'||!!p.rep;
+let lq='',lso='new',lyr='';
+function lsel(){const q=nz(lq).split(' ').filter(Boolean),d=(x,y)=>String(y.data).localeCompare(String(x.data)),m=p=>isImp(p)?1:0;
+ const L=S.pol.filter(p=>p.tipo==fv).filter(p=>!lyr||String(p.data).startsWith(lyr)).filter(p=>{if(!q.length)return true;const t=nz([p.cliente,p.polizza,p.prodotto,String(p.data).slice(0,10),p.titolo,p.importo,p.rep].join(' '));return q.every(w=>t.includes(w))});
+ const f={new:d,old:(x,y)=>-d(x,y),man:(x,y)=>m(x)-m(y)||d(x,y),imp:(x,y)=>m(y)-m(x)||d(x,y),cli:(x,y)=>nz(x.cliente).localeCompare(nz(y.cliente))||d(x,y)}[lso]||d;
+ return L.sort(f)}
+function lbody(){const el=$('#pl');if(!el)return;const L=lsel(),tot=S.pol.filter(p=>p.tipo==fv).length;
+ el.innerHTML=`${L.length?`<div class="row"><span>${L.length}${L.length<tot?' di '+tot:''} polizze</span><b>IS ${E(L.reduce((a,p)=>a+isPol(p).is,0))}</b></div>`:''}${L.length?L.map(p=>{const c=isPol(p);
+ return`<div class="pol${isImp(p)?'':' man'}"><div onclick="frm('${h(p.id)}')" style="flex:1">${MISS().has(p.id)?'<span class="gd" title="Non presente nell\'ultimo file importato"></span>':''}<b>${h(p.cliente)}</b> · ${h(p.polizza)}<small>${String(p.data).slice(0,10)} · ${p.tipo=='V'?'Vita':'Danni'} · ${h(p.prodotto)}${p.isP!==''&&p.isP!=null?' · da report':''}</small></div>
+ <div style="text-align:right"><b>${E(c.is)}</b><small>rata ${E(c.ra)}</small></div><button class="x" onclick="del('${h(p.id)}')"${delId==p.id?' style="background:var(--r);color:#fff;border-radius:8px"':''}>${delId==p.id?'Conferma':'✕'}</button></div>`}).join(''):`<p>${lq?'Nessuna polizza trovata.':'Nessuna polizza. Aggiungi la prima.'}</p>`}`}
+function lst(){
+ $('#v1').innerHTML=ed?formH():IM?imH():`${seg('fv')}<button onclick="frm()">+ Nuova polizza ${fv=='V'?'Vita':'Danni'}</button><button class="s" onclick="imStart()">Importa da Excel</button><button class="s" onclick="dupStart()">Controlla duplicati${(n=>n?' ('+n+')':'')(appDups().length)}</button>
+ <input type="search" id="lq" placeholder="Cerca nome, cognome, n. polizza, prodotto…" value="${h(lq)}" oninput="lq=this.value;lbody()" style="margin-top:10px">
+ <select id="lso" onchange="lso=this.value;lbody()">${[['new','Più recenti'],['old','Meno recenti'],['man','Inserite a mano prima'],['imp','Importate prima'],['cli','Cliente A-Z']].map(([k,l])=>`<option value="${k}"${k==lso?' selected':''}>${l}</option>`).join('')}</select>
+ <select id="lyr" onchange="lyr=this.value;lbody()"><option value="">Tutti gli anni</option>${yearsL().map(y=>`<option${String(y)==lyr?' selected':''}>${y}</option>`).join('')}</select>
+ <div class="card" id="pl"></div>`;lbody()}
+// ---- Bozza automatica: la polizza in compilazione non va persa se chiudi o ricarichi l'app ----
+const BZ={d:0,t:0,draft:null};
+function bzShow(){const m=$('#bzm');if(m)m.style.display=BZ.d?'block':'none'}
+function bzMark(){BZ.d=1;bzShow();clearTimeout(BZ.t);BZ.t=setTimeout(bzWrite,500)}
+function bzWrite(){if(!ed||!BZ.d||!$('#f_data'))return;try{localStorage.rpBozza=JSON.stringify({ts:Date.now(),d:rd()})}catch(e){}}
+function bzClear(){BZ.d=0;clearTimeout(BZ.t);try{localStorage.removeItem('rpBozza')}catch(e){}bzShow()}
+function bzCheck(){let b=null;try{b=JSON.parse(localStorage.rpBozza||'null')}catch(e){}
+ if(!b||!b.d||!(b.d.cliente||b.d.polizza||b.d.prodotto||+b.d.importo))return;BZ.draft=b;
+ const o=document.createElement('div');o.id='bzo';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px';
+ o.innerHTML=`<div class="card" style="max-width:420px;width:100%"><h2>Polizza non salvata</h2><p>Hai lasciato una polizza a metà: <b>${h(b.d.cliente||'senza cliente')}</b>${b.d.prodotto?' · '+h(b.d.prodotto):''}.<br><small style="color:var(--m)">Ultima modifica: ${new Date(b.ts).toLocaleString('it-IT')}</small></p><button onclick="bzRestore()">Ripristina</button><button class="s" onclick="bzDiscard()">Elimina</button></div>`;document.body.appendChild(o)}
+function bzRestore(){const b=BZ.draft;const o=$('#bzo');if(o)o.remove();if(!b)return;ed={...b.d};fv=ed.tipo||fv;show(1);hs({v:1,f:1});lst();pv();BZ.d=1;bzShow();toast('Bozza ripristinata')}
+function bzDiscard(){const o=$('#bzo');if(o)o.remove();BZ.draft=null;bzClear()}
+function frm(id){BZ.d=0;hs({v:1,f:1});ed=id?{...S.pol.find(p=>p.id==id)}:{tipo:fv,data:new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10),fraz:'Unico',sost:0,magg:0};lst();id?pv():ci()}
+function formH(){const t=ed.tipo,pr=S.prod.filter(p=>p.tipo==t),rr=N((S.prod.find(x=>x.nome==ed.prodotto&&x.tipo==t)||{}).rid);
+ return`<div class="card"><div class="seg"><button class="${t=='V'?'':'s'}" onclick="ed=rd();ed.tipo='V';ed.prodotto='';ed.prata='';lst();ci()">Vita</button><button class="${t=='D'?'':'s'}" onclick="ed=rd();ed.tipo='D';ed.prodotto='';ed.prata='';lst();ci()">Danni</button></div>
+ <label>Data di registrazione a cassa</label><input type="date" id="f_data" value="${String(ed.data).slice(0,10)}">
+ <label>N. polizza</label><input id="f_polizza" value="${h(ed.polizza)}">
+ <label>Cliente</label><input id="f_cliente" value="${h(ed.cliente)}">
+ <label>Prodotto</label><select id="f_prodotto" onchange="ci()">${pr.map(p=>`<option${p.nome==ed.prodotto?' selected':''}>${h(p.nome)}</option>`).join('')}</select>
+ <label>${t=='V'?'Premio annuo (o unico)':'Imponibile'} €</label><input type="text" inputmode="decimal" class="amt" id="f_importo" value="${fIt(ed.importo)}" oninput="am(this,event);ci()">
+ <label>Premio di rata € <span id="f_rl">${rr?'(riduzione '+rr+'%)':''}</span></label><input type="text" inputmode="decimal" class="amt" id="f_prata" value="${fIt(ed.prata===''||ed.prata==null?ed.importo:ed.prata)}" oninput="am(this,event);pv()">
+ ${t=='V'?`<label>Rateizzazione</label><select id="f_fraz" onchange="pv()">${Object.keys(FR).map(k=>`<option${k==ed.fraz?' selected':''}>${k}</option>`).join('')}</select>`:
+ `<label>Premio polizza sostituita (riforma), se presente €</label><input type="text" inputmode="decimal" class="amt" id="f_sost" value="${fIt(ed.sost||0)}" oninput="am(this,event);pv()">
+ <label>Maggiorazione +10% (nuova anagrafica / nuovo bisogno)</label><select id="f_magg" onchange="pv()"><option value="0">No</option><option value="1"${+ed.magg?' selected':''}>Sì</option></select>`}
+ <details${ed.isP!==''&&ed.isP!=null?' open':''}><summary>Valori del report Generali</summary>
+ <label>IS produzione €</label><input type="text" inputmode="decimal" class="amt" id="f_isP" value="${fIt(ed.isP)}" oninput="am(this,event);pv()">
+ <label>IS di rata €</label><input type="text" inputmode="decimal" class="amt" id="f_isR" value="${fIt(ed.isR)}" oninput="am(this,event);pv()">
+ <label>Incremento IS di rata nuovi clienti / cross-selling €</label><input type="text" inputmode="decimal" class="amt" id="f_incNC" value="${fIt(ed.incNC)}" oninput="am(this,event);pv()">
+ <label>Maggiorazione IS di rata attività di aggiornamento €</label><input type="text" inputmode="decimal" class="amt" id="f_maggAgg" value="${fIt(ed.maggAgg)}" oninput="am(this,event);pv()">
+ <label>Tipo titolo</label><input id="f_titolo" value="${h(ed.titolo)}">
+ <p style="font-size:12px;color:var(--m)">Se "IS produzione" è compilato, i valori del report sostituiscono il calcolo automatico. Svuotalo per tornare al calcolo automatico.</p></details>
+ ${t=='D'?`<details${N(ed.durata)?' open':''}><summary>Dati per provvigione (Danni)</summary>
+ <label>Durata contratto (mesi)</label><input type="number" inputmode="numeric" id="f_durata" value="${ed.durata||''}">
+ <label>Tariffa</label><select id="f_tariffa">${['','Definita','Analitica','Analitica Malattie','GeneraImpresa','Infortuni senza IT'].map(x=>`<option value="${x}"${x==(ed.tariffa||'')?' selected':''}>${x||'Automatica (Definita)'}</option>`).join('')}</select></details>`:''}
+ ${t=='V'?`<details${N(ed.durata)||+ed.protOn?' open':''}><summary>Dati per provvigione (Vita)</summary>
+ <label>Durata pagamento premi (mesi)</label><input type="number" inputmode="numeric" id="f_durata" value="${ed.durata||''}">
+ <label>Tipo</label><select id="f_tipoPU"><option value="">—</option><option${ed.tipoPU=='Produzione di Valore'?' selected':''}>Produzione di Valore</option><option${ed.tipoPU=='Premio Unico'?' selected':''}>Premio Unico</option></select>
+ <label class="ck"><input type="checkbox" id="f_protOn"${+ed.protOn?' checked':''}><span>Protection presente (GenerAzione Risparmio)</span></label>
+ <label>Quota protection annua € (inclusa nel premio)</label><input type="text" inputmode="decimal" class="amt" id="f_prot" value="${fIt(ed.prot)}" oninput="am(this,event);">
+ <label class="ck"><input type="checkbox" id="f_impr"${+ed.impr?' checked':''}><span>Imprevisti Protetti</span></label></details>`:''}
+ <div class="row"><span>IS produzione</span><b id="p1"></b></div><div class="row"><span>IS di rata</span><b id="p2"></b></div>
+ <button onclick="sv()" style="margin-top:10px">Salva polizza</button><button class="s" onclick="ed=null;bzClear();lst();bk('f')">Annulla</button><p id="bzm" style="display:${BZ.d?'block':'none'};font-size:12px;color:var(--m);margin:8px 0 0">Modifiche non salvate: restano in bozza su questo telefono. Premi "Salva polizza" per conservarle.</p></div>`}
+function rd(){const g=i=>{const e=$('#f_'+i);return e?e.value:ed[i]};const o={...ed};
+ ['data','polizza','cliente','prodotto','importo','fraz','sost','magg','prata','isP','isR','incNC','maggAgg','titolo','durata','tipoPU','prot','tariffa'].forEach(k=>{if($('#f_'+k))o[k]=['importo','sost','prata','isP','isR','incNC','maggAgg','prot'].includes(k)?pa(g(k)):g(k)});
+ ['protOn','impr'].forEach(k=>{if($('#f_'+k))o[k]=$('#f_'+k).checked?1:0});
+ const nm=x=>String(x||'').trim().toLowerCase(),c=S.prod.find(p=>p.nome==o.prodotto&&p.tipo==o.tipo)||S.prod.find(p=>nm(p.nome)==nm(o.prodotto)&&p.tipo==o.tipo)||S.prod.find(p=>nm(p.nome)==nm(o.prodotto));
+ if(c){let w=+c.pond,v=+c.inv;if(o.tipo=='V'&&!(w>0)){const k=VC.find(k=>k[0]==c.cat)||VC.find(k=>nm(k[0])==nm(c.nome))||(/investiment/i.test(c.nome)?VC[5]:null);if(k){w=k[1];v=k[2]}}
+  o.pond=w;o.inv=v;o.plafP=c.plafP;o.plafR=c.plafR;o.rid=c.rid}
+ if(blank(ed.prata)&&o.prata!==''&&o.prata===o.importo&&o.importo===pa(ed.importo))o.prata=ed.prata==null?'':ed.prata;return o}
+function ci(){const im=$('#f_importo'),pr=$('#f_prata');if(!im||!pr)return;const s=$('#f_prodotto'),p=S.prod.find(x=>x.nome==(s&&s.value)&&x.tipo==ed.tipo),r=N(p&&p.rid),l=$('#f_rl');
+ if(l)l.textContent=r?'(riduzione '+r+'%)':'';pr.value=im.value===''?'':fIt(Math.round(N(pa(im.value))*(100-r))/100);pv()}
+function pv(){if(!$('#p1'))return;const o=rd(),c=isPol(o);$('#p1').textContent=E(c.is);$('#p2').textContent=E(c.ra);let w=$('#p_warn');if(!w){w=document.createElement('div');w.id='p_warn';w.style.cssText='color:#b00020;font-size:12px;margin-top:4px';$('#p2').parentNode.appendChild(w)}
+ w.textContent=(o.prodotto&&!blank(o.isP)?'':(o.prodotto&&!(+o.pond>0)?'Moltiplicatore del prodotto non impostato: apri Prodotti e scegli la categoria.':''))}
+function sv(){if(!ed)return;const o=rd();if(!o.prodotto||!+o.importo||!o.data){toast('Compila data, prodotto e importo',1);return}
+ if(!o.id)o.id=crypto.randomUUID?crypto.randomUUID():Date.now()+''+Math.random().toString(36).slice(2);
+ const i=S.pol.findIndex(p=>p.id==o.id);i<0?S.pol.push(o):S.pol[i]=o;fv=o.tipo;ed=null;bzClear();render();bk('f');enq('savePolizza',[o],'p'+o.id);toast('Polizza salvata ✓')}
+function del(id){if(delId!==id){delId=id;lst();setTimeout(()=>{if(delId===id){delId=null;lst()}},3000);return}
+ delId=null;S.pol=S.pol.filter(p=>p.id!=id);drop('p'+id);render();enq('deletePolizza',[id],'d'+id);toast('Polizza eliminata')}
+function prd(){
+ $('#v2').innerHTML=`${seg('fp')}<div class="card"><h2>Elenco prodotti ${fp=='V'?'Vita':'Danni'}</h2><p style="color:var(--m);font-size:13px">Vita: scegli la categoria e il moltiplicatore IS si imposta da solo. Riduzione %: differenza tra premio annuo e premio di rata. Danni: moltiplicatore libero e plafond opzionali: sul premio massimo moltiplicabile per l'IS di produzione e sull'IS di rata (vuoto = nessun limite). Le polizze già inserite non cambiano.</p>
+ ${S.prod.map((p,i)=>p.tipo!=fp?'':`<div style="border-top:1px solid var(--l);padding-top:8px;margin-top:8px"><input value="${h(p.nome)}" data-i="${i}" data-k="nome" placeholder="Nome prodotto">
+ <div class="seg">
+ ${p.tipo=='V'?`<select data-i="${i}" data-k="cat" onchange="col();prd()">${VC.some(c=>c[0]==p.cat)?'':`<option value="" selected>Personalizzato ×${p.pond}</option>`}${VC.map(c=>`<option value="${h(c[0])}"${c[0]==p.cat?' selected':''}>${h(c[0])} ×${c[1]}</option>`).join('')}</select>`
+ :`<input type="number" step="0.01" value="${p.pond}" data-i="${i}" data-k="pond" placeholder="Moltiplicatore">`}</div>
+ ${p.tipo=='D'?`<div class="seg"><input type="text" inputmode="decimal" class="amt" oninput="am(this,event)" value="${fIt(p.plafP)}" data-i="${i}" data-k="plafP" placeholder="Premio max per IS produzione €"><input type="text" inputmode="decimal" class="amt" oninput="am(this,event)" value="${fIt(p.plafR)}" data-i="${i}" data-k="plafR" placeholder="Plafond IS rata €"></div>`:''}
+ <input type="number" step="0.01" value="${p.rid===''||p.rid==null?'':p.rid}" data-i="${i}" data-k="rid" placeholder="Riduzione % del premio di rata (es. 3,5)">
+ <button class="s" onclick="rp(${i})">Elimina prodotto</button></div>`).join('')}
+ <button class="s" onclick="ap_()">+ Aggiungi prodotto</button><button onclick="sp()">Salva prodotti</button><button class="s" onclick="bkp()">Ripristina da backup</button><div id="bk"></div></div>`}
+function col(){document.querySelectorAll('#v2 [data-i]').forEach(e=>{const p=S.prod[+e.dataset.i],k=e.dataset.k;if(k=='cat'&&e.value==='')return;p[k]=['plafP','plafR'].includes(k)?pa(e.value):['pond','rid'].includes(k)?(e.value===''?'':+e.value):e.value});
+ S.prod.forEach(p=>{if(p.tipo=='V'){const c=VC.find(c=>c[0]==p.cat);if(c){p.pond=c[1];p.inv=c[2]}}else p.inv=0})}
+async function bkp(){try{const L=await api('listBackup');if(!L.length){toast('Nessun backup disponibile',1);return}window.BK=L;
+ $('#bk').innerHTML='<label>Scegli il backup</label><select id="bk_s">'+L.map((b,i)=>`<option value="${i}">${h(b.data)} · ${b.n} prodotti</option>`).join('')+'</select><button onclick="rbk()">Ripristina selezionato</button>'}catch(e){toast('Backup non disponibile: '+(e&&e.message||e),1)}}
+function rbk(){const b=BK[+$('#bk_s').value];S.prod=b.p;keep();enq('saveProdotti',[S.prod],'prod');prd();toast('Prodotti ripristinati ✓')}
+function ap_(){col();S.prod.push({nome:'',tipo:fp,pond:fp=='D'?3:1,inv:0,cat:fp=='D'?'':'Risparmio',plafP:'',plafR:'',rid:''});prd()}
+function rp(i){col();S.prod.splice(i,1);prd()}
+function sp(){col();S.prod=S.prod.filter(p=>p.nome);keep();enq('saveProdotti',[S.prod],'prod');prd();toast('Prodotti salvati ✓')}
+function imp(){const o=I();$('#v3').innerHTML=`<div class="card"><h2>Anni di rappel</h2><p style="color:var(--m);font-size:13px">I dati di ogni anno restano archiviati: cambiando anno non si perde nulla. Ogni anno ha le sue impostazioni (seniority, anno precedente, presidio).</p>
+ <label>Anno visualizzato</label><select onchange="setAnno(this.value)">${yearsL().map(y=>`<option${y==o.anno?' selected':''}>${y}</option>`).join('')}</select>
+ <button class="s" onclick="newAnno()">Crea il rappel ${Math.max(...yearsL())+1}</button></div>
+ <div class="card"><h2>Impostazioni ${o.anno}</h2>
+ <p style="margin:0 0 8px">Rappel attivo: <b>${o.anno}</b></p>
+ <label>Seniority (cambia i programmi mensili)</label><select id="i_sen">${SEN.map((s,i)=>`<option value="${i}"${i==o.sen?' selected':''}>${s.n} · IS ${E(s.is)}</option>`).join('')}</select>
+ <label>Anno precedente: rate Vita incassate nell'anno €</label><input type="text" inputmode="decimal" class="amt" id="i_apQ" value="${fIt(o.apQ)}" oninput="am(this,event)">
+ <label>Anno precedente: aliquota Vita maturata al 6° bimestre %</label><input type="number" step="0.01" id="i_apA" value="${o.apA}">
+ <button onclick="si()">Salva impostazioni</button></div>
+ <div class="card"><h2>Collegamento</h2><button class="s" onclick="setup()">Modifica link e chiave</button></div>`}
+function setRec(patch){const a=I().anno,r={...(yrec(a)||(!hasRec()?legacy():{})),...patch},j=JSON.stringify(r);S.imp={...S.imp,['y'+a]:j};enq('saveImp',[{['y'+a]:j}],'imp_y'+a)}
+function sp_(kb,v){const n=Math.round(Math.max(0,N(pa(v)))*100)/100,M={...I().presM};if(n)M[kb]=n;else delete M[kb];setRec({presidio:M});render();toast('Presidio Incassi DNA salvato ✓')}
+function si(){setRec({sen:$('#i_sen').value,apQ:pa($('#i_apQ').value),apA:$('#i_apA').value});render();toast('Impostazioni salvate ✓')}
+const yearsL=()=>{const z=new Set([cyr,+S.imp.anno||cyr]);S.pol.forEach(p=>{const y=+String(p.data).slice(0,4);if(y>1999&&y<2100)z.add(y)});Object.keys(S.imp).forEach(k=>{if(/^y\d{4}$/.test(k))z.add(+k.slice(1))});return[...z].sort((a,b)=>b-a)};
+function freeze(){const cur=I().anno;if(!hasRec()&&!yrec(cur)){const j=JSON.stringify(legacy());S.imp={...S.imp,['y'+cur]:j};enq('saveImp',[{['y'+cur]:j}],'imp_y'+cur)}}
+function setAnno(y){y=+y;if(!y||y==I().anno)return;freeze();S.imp={...S.imp,anno:y};enq('saveImp',[{anno:y}],'imp_anno');selM=y==cyr?new Date().getMonth():11;render();toast('Rappel '+y)}
+function newAnno(){const L=yearsL(),y=Math.max(...L)+1,prev=I().anno;freeze();
+ const D=calc(prev),vr=(()=>{let t=0;S.pol.filter(p=>p.tipo=='V'&&String(p.data).startsWith(String(prev))).forEach(p=>{const m=+String(p.data).slice(5,7)-1,c=isPol(p);for(let k=0;k<c.n;k++)if(m+k*12/c.n<12)t+=c.ra});return t})(),
+ rec={sen:I(prev).sen,apQ:Math.round(vr),apA:Math.round(D[11].al*10000)/100,presidio:{}},j=JSON.stringify(rec);
+ S.imp={...S.imp,['y'+y]:j,anno:y};enq('saveImp',[{['y'+y]:j}],'imp_y'+y);enq('saveImp',[{anno:y}],'imp_anno');selM=0;render();toast('Creato il rappel '+y+': verifica i valori dell\'anno precedente in Impostazioni')}
+let fv='V',fp='V';
+const seg=k=>{const v=k=='fv'?fv:fp,n=x=>(k=='fv'?S.pol:S.prod).filter(p=>p.tipo==x).length;
+ return`<div class="seg">${['V','D'].map(x=>`<button class="${v==x?'':'s'}" onclick="${k}='${x}';${k=='fv'?'lst()':'col();prd()'}">${x=='V'?'Vita':'Danni'} (${n(x)})</button>`).join('')}</div>`};
+let OPS=[],run=0,tt;try{OPS=JSON.parse(localStorage.rpQ||'[]')}catch(e){}
+const sv_=()=>{localStorage.rpQ=JSON.stringify(OPS)};
+function sync(){const e=$('#hy');if(e)e.textContent=I().anno+' · '+SEN[I().sen].n+(OPS.length?' · sincronizzo…':'')}
+function toast(m,err,retry){const t=$('#toast');clearTimeout(tt);t.className='on'+(err?' err':'');t.innerHTML='<span>'+h(m)+'</span>'+(retry?'<button onclick="flush()">Riprova</button>':'');if(!err)tt=setTimeout(()=>{t.className=''},2200);if(navigator.vibrate)navigator.vibrate(err?[30,40,30]:12)}
+function drop(k){OPS=OPS.filter((o,i)=>!(o.key===k&&!(run&&i===0)))}
+function enq(fn,a,key){drop(key);OPS.push({fn,a,key});sv_();sync();flush()}
+async function flush(){if(run)return;run=1;while(OPS.length){const o=OPS[0];
+ try{const r=await api(o.fn,...o.a,...(o.fn=='saveProdotti'?[+S.imp.revP||0]:[]));if(o.fn=='saveProdotti'&&r>0)S.imp.revP=r}
+ catch(e){const m=String(e&&e.message||e);run=0;
+  if(m.includes('CONFLITTO')){OPS.shift();sv_();sync();toast('Prodotti modificati altrove: la tua modifica non è stata applicata. Ricarico i dati.',1);start();return}
+  if(/non valid|non numeric|vuoto/i.test(m)){OPS.shift();sv_();sync();toast('Salvataggio rifiutato: '+m,1);start();return}
+  sync();toast('Non salvato sul foglio: '+m,1,1);return}
+ OPS.shift();sv_();sync()}run=0}
+/*PROV-START*/
+const DIRR=9.96;
+function pvCalc(L){const ctx={},out=new Map(),V=L.slice().sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+ for(const p of V)out.set(p.id,pvOne(p,ctx));return out}
+function pvDanni(p){const n=nz(p.prodotto),A=N(p.importo),mesi=N(p.durata),tt=nz(p.titolo);
+ if(/rinnov|storno|appendice/.test(tt))return{no:'Non è 1ª firma'};
+ if(!mesi)return{no:'Inserisci la durata'};
+ const t=p.tariffa||(/generaimpresa/.test(n)?'GeneraImpresa':'Definita'),rt={'Definita':3.2,'Analitica':2.5,'Analitica Malattie':2,'GeneraImpresa':3,'Infortuni senza IT':3.2}[t]||3.2,
+  anni=Math.min(7,Math.max(1,mesi/12)),tot=Math.max(0,A-N(p.sost))*anni*rt/100;
+ return{tot,comp:null,base:null,pu:true,mat:tot,rata:0,n:t+' '+String(rt).replace('.',',')+'% × '+(Math.round(anni*100)/100)+' anni'}}
+function pvOne(p,ctx){if(p.tipo=='D')return pvDanni(p);const n=nz(p.prodotto),A=N(p.importo),pr=blank(p.prata)?A:N(p.prata),mesi=N(p.durata),anni=mesi/12,fz=FR[p.fraz]||1,tt=nz(p.titolo),
+ pu=nz(p.tipoPU)=='premio unico'||p.fraz=='Unico',agg=/versam|aggiunt/.test(tt),firma=!tt||/nuova|prima/.test(tt)||agg;
+ const R=(tot,comp,base,o)=>({tot,comp,base,pu:true,mat:tot,rata:0,...o});
+ if(/previdente/.test(n))return{no:'Previdenza: in arrivo'};
+ if(!firma)return{no:'Non è 1ª firma'};
+ if(/generazione investimento/.test(n))return R(30,A*.06,A*.03);
+ if(/rinnova valore bonus/.test(n)){const d=String(p.data),k=nz(p.cliente)+'|'+d.slice(0,4)+(+d.slice(5,7)<=6?'S1':'S2'),u=ctx[k]||0,t=Math.max(0,Math.min(A*.003,3000-u));ctx[k]=u+t;return R(t,A*.04,A*.009,{n:t<A*.003-.005?'Tetto €3.000 a semestre raggiunto':''})}
+ if(/generasviluppo sostenibile/.test(n))return R(agg?50:75,A*.06,A*.03);
+ const rec=(rate,comp,base,o)=>({tot:A*rate,comp,base,pu:false,mat:A?A*rate*pr/A:0,rata:A*rate/fz,rate,...o});
+ if(/lungavita/.test(n)){if(pu)return R(A*.0186,A*.12,A*.12);
+  if(!mesi)return{no:'Inserisci la durata'};const r=(anni>=13?19.4:1.49*anni)/100,g=Math.min(anni,10)/10;return rec(r,A*1.2*g,A*1.2*g)}
+ if(/scegli col cuore/.test(n)){if(!mesi)return{no:'Inserisci la durata'};const r=1.33*Math.min(anni,17)/100,g=Math.min(anni,10)/10;return rec(r,A*1.2*g,A*1.2*g)}
+ if(/generazione risparmio/.test(n)){
+  if(pu)return R(Math.min(A*.0016,400),A*.06,A*.03);
+  if(!mesi)return{no:'Inserisci la durata'};const g=Math.min(anni,10)/10,q=+p.protOn?Math.min(N(p.prot),A):0,ris=Math.max(0,A-q-DIRR),t=Math.min(ris*.0416,185)+q*(+p.impr?.27:.32)*g;
+  return{tot:t,comp:ris+q*1.2*g,base:ris*.5+q*1.2*g,pu:false,mat:A?t*pr/A:0,rata:t/fz,n:q?'con protection':'senza protection'}}
+ if(/generavalore|multiplan|obiettivo rendimento/.test(n))return R(A*.0016,null,null,{n:'regola dedotta 0,16%'});
+ return{no:'Nessuna scheda provvigionale'}}
+let pvSel='',pvT='V';
+const amM=(ym,k)=>{const y=+ym.slice(0,4),m=+ym.slice(5,7)-1+k;return(y+Math.floor(m/12))+'-'+String(m%12+1).padStart(2,'0')};
+let pvLag=(()=>{try{return localStorage.rpLag==='0'?0:1}catch(e){return 1}})();
+function pvSched(p,c){if(c.no)return[];const f=amM(String(p.data).slice(0,7),(+String(p.data).slice(8,10)>25?1:0)+pvLag-1),A=N(p.importo),pr=blank(p.prata)?A:N(p.prata),fz=FR[p.fraz]||1;
+ if(c.pu||fz<=1)return[{ym:amM(f,1),amt:c.tot,t:'unica',first:1}];
+ const k=Math.min(fz,Math.max(1,Math.round(pr/(A/fz)))),o=[];for(let i=0;i<fz;i++)o.push({ym:amM(f,1+i*12/fz),amt:c.rata,prev:i>=k,t:'rata '+(i+1)+'/'+fz,first:!i});return o}
+function pvt(){const el=$('#v4');if(!el||!S)return;const M=pvCalc(S.pol),C=x=>gr(x,2)+'\u00a0€',
+ P=S.pol.filter(p=>p.tipo==pvT),R=[];
+ P.forEach(p=>{const c=M.get(p.id)||{no:''};pvSched(p,c).forEach(e=>R.push({p,c,e}))});
+ const ms=[...new Set(R.map(x=>x.e.ym))].sort().reverse(),now=new Date().toISOString().slice(0,7);
+ if(!ms.includes(pvSel))pvSel=ms.find(m=>m<=now)||ms[0]||'';
+ const L=R.filter(x=>x.e.ym==pvSel).sort((a,b)=>String(a.p.cliente).localeCompare(String(b.p.cliente))),sm=f=>L.filter(f).reduce((a,x)=>a+x.e.amt,0),
+  NO=P.filter(p=>(M.get(p.id)||{}).no);
+ el.innerHTML=`<div class="card"><h2>Provvigioni</h2><div class="seg"><button class="${pvT=='V'?'':'s'}" onclick="pvT='V';pvSel='';pvt()">Vita</button><button class="${pvT=='D'?'':'s'}" onclick="pvT='D';pvSel='';pvt()">Danni</button></div>
+ <label>Regola di liquidazione</label><select onchange="pvLag=+this.value;try{localStorage.rpLag=this.value}catch(e){}pvt()"><option value="1"${pvLag?' selected':''}>Mese successivo all'incasso</option><option value="0"${pvLag?'':' selected'}>Stesso mese dell'incasso</option></select>
+ <label>Mese di liquidazione</label><select onchange="pvSel=this.value;pvt()">${ms.map(m=>`<option value="${m}"${m==pvSel?' selected':''}>${MS[+m.slice(5)-1]} ${m.slice(0,4)}</option>`).join('')}</select>
+ <div class="row"><span>Provvigioni del mese</span><b>${C(sm(()=>1))}</b></div>
+ <div class="row"><span>di cui già incassate</span><b>${C(sm(x=>!x.e.prev))}</b></div><div class="row"><span>di cui previste (rate non ancora incassate)</span><b>${C(sm(x=>x.e.prev))}</b></div>
+ <div class="row"><span>Computo / Base incentivabile (nuove polizze)</span><b>${C(L.filter(x=>x.e.first).reduce((a,x)=>a+(x.c.comp||0),0))} / ${C(L.filter(x=>x.e.first).reduce((a,x)=>a+(x.c.base||0),0))}</b></div></div>
+ <div class="card">${L.length?L.map(({p,c,e})=>`<div class="pol" onclick="frm('${h(p.id)}');show(1)"><div style="flex:1;min-width:0"><b>${h(p.cliente)}</b> · ${h(p.polizza)}<small>${h(p.prodotto)} · reg. ${String(p.data).slice(0,10)}${c.rate?' · '+(c.rate*100).toFixed(2)+'%':''}</small><small>${e.t}${e.prev?' · prevista':''}${c.n?' · '+h(c.n):''}${e.first&&c.comp!=null?' · computo '+C(c.comp)+' · base '+C(c.base):''}</small></div><div style="text-align:right"><b>${C(e.amt)}</b>${c.pu?'':`<small>totale ${C(c.tot)}</small>`}</div></div>`).join(''):'<p>Nessuna provvigione in questo mese.</p>'}
+ ${NO.length?`<details><summary>${NO.length} polizze senza calcolo</summary>${NO.map(p=>`<div class="pol" onclick="frm('${h(p.id)}');show(1)"><div style="flex:1"><b>${h(p.cliente)}</b> · ${h(p.polizza)}<small>${h(p.prodotto)}</small></div><small style="text-align:right;max-width:45%">${h(M.get(p.id).no)}</small></div>`).join('')}</details>`:''}
+ <p style="font-size:12px;color:var(--m)">Le provvigioni si liquidano ogni mese (il rappel invece ogni bimestre), con incasso = data di registrazione (fino al 25 nel mese, dopo il 25 nel mese successivo). Le rate Vita si pagano una al mese/trimestre ecc. secondo la rateazione; Danni e premi unici in un'unica soluzione. Recuperi e 2ª/3ª firma non inclusi.</p></div>`}
+/*PROV-END*/
+/*IMP-START*/
+// ===== IMPORTA DA EXCEL (report Generali: fogli "Dettaglio polizze Vita" / "Dettaglio polizze Danni") =====
+let IM=null;
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+''+Math.random().toString(36).slice(2);
+const nz=s=>String(s==null?'':s).toLowerCase().replace(/\s+/g,' ').trim();
+const nn=s=>String(s==null?'':s).replace(/[^0-9A-Za-z]/g,'').replace(/^0+/,'').toUpperCase();
+const E2=n=>gr(n,2);
+const XE=s=>String(s).replace(/&(#[xX][0-9a-fA-F]+|#\d+|amp|lt|gt|quot|apos);/g,(m,e)=>e=='amp'?'&':e=='lt'?'<':e=='gt'?'>':e=='quot'?'"':e=='apos'?"'":String.fromCodePoint(/^#[xX]/.test(e)?parseInt(e.slice(2),16):parseInt(e.slice(1),10)));
+// --- lettura .xlsx senza librerie esterne (zip + xml) ---
+function zipList(buf){const dv=new DataView(buf),u=new Uint8Array(buf);let e=u.length-22;
+ while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+ if(e<0)throw new Error('non è un file Excel (.xlsx)');
+ const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const L={};
+ for(let i=0;i<n&&dv.getUint32(p,true)===0x02014b50;i++){
+  const nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true);
+  L[new TextDecoder().decode(u.subarray(p+46,p+46+nl))]={m:dv.getUint16(p+10,true),c:dv.getUint32(p+20,true),o:dv.getUint32(p+42,true)};
+  p+=46+nl+el+cl}
+ return L}
+async function zipGet(buf,en){const dv=new DataView(buf),o=en.o,st=o+30+dv.getUint16(o+26,true)+dv.getUint16(o+28,true),d=new Uint8Array(buf,st,en.c);
+ if(en.m===0)return new TextDecoder().decode(d);
+ if(en.m!==8)throw new Error('compressione non supportata');
+ if(typeof DecompressionStream=='undefined')throw new Error('browser troppo vecchio: aggiorna Chrome');
+ const s=new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+ return new TextDecoder().decode(await new Response(s).arrayBuffer())}
+function ssParse(x){const out=[];
+ for(const m of x.matchAll(/<si\b[^>]*>([\s\S]*?)<\/si>/g)){const b=m[1].replace(/<rPh\b[\s\S]*?<\/rPh>/g,'');let t='';
+  for(const z of b.matchAll(/<t\b[^>]*?(?:\/>|>([\s\S]*?)<\/t>)/g))t+=XE(z[1]||'');out.push(t)}
+ return out}
+const colN=r=>{let n=0;for(const ch of r)n=n*26+ch.charCodeAt(0)-64;return n};
+function shParse(x,ss){const rows={};
+ for(const m of x.matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){const a=m[1],b=m[2]||'',r=/\br="([A-Z]+)(\d+)"/.exec(a);if(!r)continue;
+  const t=(/\bt="(\w+)"/.exec(a)||[])[1];let v;
+  if(t=='inlineStr')v=[...b.matchAll(/<t\b[^>]*>([\s\S]*?)<\/t>/g)].map(z=>XE(z[1])).join('');
+  else{const z=/<v>([\s\S]*?)<\/v>/.exec(b);if(!z)continue;v=t=='s'?ss[+z[1]]:(t=='str'||t=='e')?XE(z[1]):t=='b'?z[1]=='1':+z[1]}
+  (rows[+r[2]]=rows[+r[2]]||{})[colN(r[1])]=v}
+ return rows}
+async function readXlsx(buf){const L=zipList(buf),g=n=>L[n]?zipGet(buf,L[n]):Promise.resolve('');
+ const wb=await g('xl/workbook.xml'),rel=await g('xl/_rels/workbook.xml.rels'),ss=ssParse(await g('xl/sharedStrings.xml')),rm={};
+ for(const m of rel.matchAll(/<Relationship\b[^>]*>/g)){const id=/\bId="([^"]+)"/.exec(m[0]),tg=/\bTarget="([^"]+)"/.exec(m[0]);if(id&&tg)rm[id[1]]=tg[1]}
+ const out=[];
+ for(const m of wb.matchAll(/<sheet\b[^>]*>/g)){const nm=/\bname="([^"]*)"/.exec(m[0]),id=/\br:id="([^"]+)"/.exec(m[0]);if(!nm||!id)continue;
+  const x=await g('xl/'+(rm[id[1]]||'').replace(/^\/?(xl\/)?/,''));if(x)out.push({name:XE(nm[1]),rows:shParse(x,ss)})}
+ return out}
+// --- interpretazione del report ---
+const HM=[['pol',/^n\.?\s*polizza/],['cli',/^contraente/],['bis',/^bisogno/],['prod',/^descrizione prodotto/],['dat',/^data registrazione/],['tit',/^tipo titolo/],['rat',/^rateaz/],
+ ['pa',/^importo premio annuo/],['pr',/^importo premio di rata/],['mol',/^moltip/],['isp',/^is di produzione/],['isr',/^is di rata$/],['inc',/^incr\.? is di rata/],['agg',/^maggioraz\.? is di rata/],['dur',/^durata/],['tpu',/^prod\.? di valore/]];
+function toNum(v){if(typeof v=='number')return v;if(v==null)return NaN;let s=String(v).replace(/[€\s]/g,'');if(s==='')return NaN;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return Number(s)}
+function toIso(v){if(typeof v=='number'&&v>20000)return new Date(Math.round((v-25569)*864e5)).toISOString().slice(0,10);
+ const s=String(v==null?'':v);let y,m,d,k;
+ if(k=/^\s*(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})\s*$/.exec(s)){d=+k[1];m=+k[2];y=+k[3]}else if(k=/^\s*(\d{4})-(\d{2})-(\d{2})/.exec(s)){y=+k[1];m=+k[2];d=+k[3]}else return'';
+ return m<1||m>12||d<1||d>31?'':y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+const frz=v=>{const s=nz(v);return/^m/.test(s)?'Mensile':/^t/.test(s)?'Trimestrale':/^s/.test(s)?'Semestrale':/^a/.test(s)?'Annuale':'Unico'};
+function repParse(sh){const R=sh.rows,ks=Object.keys(R).map(Number).sort((a,b)=>a-b);let hr=0;
+ for(const r of ks){if(r>80)break;if(Object.values(R[r]).some(v=>/^n\.?\s*polizza$/.test(nz(v)))){hr=r;break}}
+ if(!hr)return null;
+ const col={};for(const [c,v] of Object.entries(R[hr])){const t=nz(v);for(const [k,re] of HM)if(col[k]==null&&re.test(t)){col[k]=+c;break}}
+ const lab={pol:'N. Polizza',cli:'Contraente',prod:'Descrizione Prodotto',dat:'Data Registrazione',pa:'Importo Premio Annuo',pr:'Importo Premio di Rata',isp:'IS di Produzione',isr:'IS di Rata'};
+ const miss=Object.keys(lab).filter(k=>col[k]==null).map(k=>lab[k]);
+ if(miss.length)throw new Error('foglio "'+sh.name+'": colonne mancanti ('+miss.join(', ')+')');
+ const tipo=/vita/i.test(sh.name)?'V':/danni/i.test(sh.name)?'D':(col.rat!=null?'V':'D');
+ let bim='';for(const r of ks){if(r>hr)break;for(const v of Object.values(R[r])){const m=/bimestre:?\s*(\d{2}\.\d{2}\.\d{4})/i.exec(String(v));if(m){bim=m[1];break}}if(bim)break}
+ const rows=[],errs=[],sum={pa:0,pr:0,isp:0,isr:0,inc:0,agg:0},tx=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+ for(const r of ks){if(r<=hr)continue;const c=R[r],g=k=>col[k]==null?undefined:c[col[k]],ps=tx(g('pol'));if(!ps||nz(ps)=='totale')continue;
+  const pa=toNum(g('pa')),pr=toNum(g('pr')),ip=toNum(g('isp')),ir=toNum(g('isr')),dt=toIso(g('dat'));
+  if(!isFinite(pa)||!isFinite(ip)||!isFinite(ir)||!dt){errs.push('Riga '+r+' ('+ps+'): dati mancanti o non validi, saltata');continue}
+  const o={tipo,polizza:ps,cliente:tx(g('cli')),prodotto:tx(g('prod')),bis:tx(g('bis')),data:dt,titolo:tx(g('tit')),fraz:tipo=='V'?frz(g('rat')):'Unico',
+   importo:pa,prata:isFinite(pr)?pr:pa,mol:toNum(g('mol'))||0,isP:ip,isR:ir,incNC:toNum(g('inc'))||0,maggAgg:toNum(g('agg'))||0,durata:toNum(g('dur'))||0,tipoPU:tx(g('tpu'))};
+  rows.push(o);sum.pa+=o.importo;sum.pr+=o.prata;sum.isp+=o.isP;sum.isr+=o.isR;sum.inc+=o.incNC;sum.agg+=o.maggAgg}
+ let tot=null;for(const r of ks){if(Object.values(R[r]).some(v=>nz(v)=='totale')){tot={};for(const k of ['pa','pr','isp','isr','inc','agg'])if(col[k]!=null&&typeof R[r][col[k]]=='number')tot[k]=R[r][col[k]];break}}
+ const bad=tot?Object.keys(tot).filter(k=>Math.abs(tot[k]-sum[k])>.05):[];
+ return{tipo,name:sh.name,rows,errs,tot,sum,bad,bim}}
+// --- confronto con le polizze già inserite (chiave: n. polizza; il n. può ripetersi, quindi si abbina anche per data e premio) ---
+function imFields(r,pr){return{tipo:r.tipo,data:r.data,polizza:r.polizza,cliente:r.cliente,prodotto:pr?pr.nome:r.prodotto,importo:r.importo,prata:r.prata,fraz:r.fraz,
+ pond:pr?N(pr.pond):r.mol,inv:pr?(+pr.inv?1:0):(r.tipo=='V'&&/investimento/i.test(r.bis||'')?1:0),titolo:r.titolo,isP:r.isP,isR:r.isR,incNC:r.incNC,maggAgg:r.maggAgg,durata:r.durata||0,tipoPU:r.tipoPU||'',rep:r.rep||'',src:'imp'}}
+const DK=[['cliente','Cliente','t'],['prodotto','Prodotto','t'],['data','Data','t'],['importo','Premio annuo','n'],['prata','Premio di rata','n'],['isP','IS produzione','n'],['isR','IS di rata','n'],
+ ['incNC','Incr. IS rata nuovi clienti','n'],['maggAgg','Magg. IS rata aggiornamento','n'],['titolo','Tipo titolo','t'],['durata','Durata (mesi)','n'],['tipoPU','Tipo (valore/unico)','t']];
+const blank=v=>v===''||v==null;
+function imDiff(ex,f){const d=[];
+ for(const [k,lb,t] of DK){let a=ex[k];const b=f[k];if(k=='prata'&&blank(a))a=ex.importo;
+  if(t=='n'){const A=blank(a)?0:+a;if(Math.abs(A-(+b||0))>.005)d.push([lb,blank(a)?'—':E2(A),E2(b)])}
+  else{const A=k=='data'?String(a||'').slice(0,10):a;if(nz(A)!=nz(b))d.push([lb,blank(A)?'—':String(A),String(b||'—')])}}
+ return d}
+function imBuild(rows){const used=new Set(),pairs=[],byN={},sd=p=>String(p.data).slice(0,10);
+ S.pol.forEach(p=>{(byN[nn(p.polizza)]=byN[nn(p.polizza)]||[]).push(p)});
+ const cand=r=>(byN[nn(r.polizza)]||[]).filter(p=>p.tipo==r.tipo&&!used.has(p.id));
+ const l1=[],l2=[],l3=[],grp={};
+ rows.forEach(r=>{const m=cand(r).find(p=>sd(p)==r.data&&Math.abs(N(p.importo)-r.importo)<.005);if(m){used.add(m.id);pairs.push({r,ex:m})}else l1.push(r)});
+ l1.forEach(r=>{const m=cand(r).find(p=>sd(p)==r.data);if(m){used.add(m.id);pairs.push({r,ex:m})}else l2.push(r)});
+ l2.forEach(r=>{(grp[r.tipo+nn(r.polizza)]=grp[r.tipo+nn(r.polizza)]||[]).push(r)});
+ Object.values(grp).forEach(g=>{const c=cand(g[0]);if(g.length==1&&c.length==1){used.add(c[0].id);pairs.push({r:g[0],ex:c[0]})}else l3.push(...g)});
+ l3.forEach(r=>pairs.push({r,ex:null}));
+ return pairs.sort((a,b)=>a.r._i-b.r._i).map(x=>{
+  const pr=S.prod.find(p=>p.tipo==x.r.tipo&&nz(p.nome)==nz(x.r.prodotto))||null,f=imFields(x.r,pr),w=[];
+  if(pr&&x.r.mol&&Math.abs(N(pr.pond)-x.r.mol)>1e-9)w.push('moltiplicatore del tuo prodotto ×'+pr.pond+', nel file ×'+x.r.mol);
+  if(!x.ex)return{k:'new',r:x.r,f,pr,w,sel:true};
+  const d=imDiff(x.ex,f);return{k:d.length?'chg':'same',r:x.r,f,pr,w,ex:x.ex,d,sel:false}})}
+// --- schermate ---
+function imStart(){hs({v:1,im:1});IM={};lst()}
+function imX(){IM=null;lst();bk('im')}
+async function imRead(fl){if(!fl||!fl.length)return;IM={busy:1};lst();
+ const rows=[],info=[],errs=[],names=[],seen={};let bim='';
+ for(let fi=0;fi<fl.length;fi++){const f=fl[fi];names.push(f.name);
+  try{const sh=await readXlsx(await f.arrayBuffer());let got=0;
+   for(const s of sh){const p=repParse(s);if(!p)continue;got++;info.push(p);errs.push(...p.errs);bim=bim||p.bim;
+    p.rows.forEach(r=>{const k=[r.tipo,nn(r.polizza),r.data,r.importo,r.prata,r.isP,r.isR].join('|');if(seen[k]!=null&&seen[k]!=fi)return;seen[k]=fi;r._i=rows.length;r.rep=p.bim?'Bim. '+p.bim:'';rows.push(r)})}
+   if(!got)errs.push('"'+f.name+'": nessun foglio riconosciuto (servono "Dettaglio polizze Vita" e/o "Dettaglio polizze Danni")')}
+  catch(e){errs.push('"'+f.name+'": '+(e&&e.message||e))}}
+ if(!rows.length){IM={err:errs.length?errs:['Nessuna polizza trovata nel file']};lst();return}
+ const items=imBuild(rows),np={},orph=imExtra(items,info);
+ items.forEach(it=>{if(!it.pr){const k=it.r.tipo+'|'+nz(it.r.prodotto);(np[k]=np[k]||{nome:it.r.prodotto,tipo:it.r.tipo,pond:it.r.mol||(it.r.tipo=='D'?3:1),inv:it.f.inv,n:0,sel:true}).n++}});
+ const y=I().anno;
+ IM={names,bim,info,errs,items,orph,prods:Object.values(np),yw:rows.filter(r=>+r.data.slice(0,4)!=y).length};lst()}
+const ddays=(a,b)=>Math.abs(new Date(String(a).slice(0,10))-new Date(String(b).slice(0,10)))/864e5;
+const pl4=x=>nz(x).replace(/[^a-z]/g,'').slice(0,8);
+const dupRule=(a,b)=>a.tipo==b.tipo&&Math.abs(N(a.importo)-N(b.importo))<.005&&ddays(a.data,b.data)<=7&&((nn(a.polizza)&&nn(a.polizza)==nn(b.polizza))||(nz(a.cliente)==nz(b.cliente)&&pl4(a.prodotto)==pl4(b.prodotto)));
+function appDups(){const P=S.pol,o=[];for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++)if(dupRule(P[i],P[j]))o.push([P[i],P[j]]);return o}
+function dupStart(){hs({v:1,im:1});IM={dups:1};lst()}
+function imDel(id){if(IM.cf!==id){IM.cf=id;lst();setTimeout(()=>{if(IM&&IM.cf===id){IM.cf=null;lst()}},3000);return}
+ IM.cf=null;S.pol=S.pol.filter(p=>p.id!=id);drop('p'+id);enq('deletePolizza',[id],'d'+id);render();lst();toast('Polizza eliminata')}
+function dupH(){const D=appDups(),row=p=>`<div class="row"><span style="min-width:0"><b>${h(p.cliente)}</b> · ${h(p.polizza)}<small style="display:block;color:var(--m)">${String(p.data).slice(0,10)} · ${h(p.prodotto)} · ${isImp(p)?'importata dal file':'inserita a mano'}</small></span><span style="text-align:right"><b>${E2(isPol(p).is)}</b><br><button class="s" style="margin:4px 0 0;padding:6px 12px;width:auto" onclick="imDel('${h(p.id)}')">${IM.cf==p.id?'Conferma':'Elimina'}</button></span></div>`;
+ return`<div class="card"><h2>Possibili duplicati nella tua app</h2><p style="color:var(--m);font-size:13px">Coppie con stesso tipo e premio, date vicine (entro 7 giorni) e stesso numero polizza oppure stesso cliente e prodotto. Elimina la copia sbagliata (di solito quella inserita a mano): serve il doppio tocco "Elimina" + "Conferma". Se non tocchi nulla, non cambia niente.</p>${D.length?D.map(([a,b])=>`<div style="border-top:1px solid var(--l);padding:6px 0">${row(a)}${row(b)}</div>`).join(''):'<p>Nessun duplicato trovato ✓</p>'}</div><button class="s" onclick="imX()">Chiudi</button>`}
+function imExtra(items,info){const tp=new Set(info.map(p=>p.tipo)),got=new Set(items.filter(x=>x.ex).map(x=>x.ex.id)),orph=S.pol.filter(p=>tp.has(p.tipo)&&!got.has(p.id)),
+ sim=dupRule;
+ items.forEach((x,i)=>{x.dups=[];
+  for(let j=0;j<i;j++){const y=items[j];if(sim(x.r,y.r)){const same=nn(x.r.polizza)==nn(y.r.polizza)&&x.r.data==y.r.data&&N(x.r.prata)==N(y.r.prata);x.dups.push((same?'Riga identica ripetuta nel file':'Simile a una riga del file')+' (n. '+y.r.polizza+')');break}}
+  if(x.k=='new'){const o=orph.find(p=>sim(x.r,p));if(o)x.dups.push('Possibile duplicato di una polizza della tua app: n. '+o.polizza+' del '+String(o.data).slice(0,10)+(isImp(o)?'':' (inserita a mano)'));
+   if(x.dups.length)x.sel=false}
+  else if(x.k=='chg')x.sel=true});
+ orph.forEach(o=>{const m=items.find(x=>sim(x.r,o)),a=S.pol.find(q=>q.id!=o.id&&sim(q,o));o.dupOf=m?m.r.polizza:(a?a.polizza:'')});
+ return orph}
+function imT(i){IM.items[i].sel=!IM.items[i].sel;imC()}
+function imAll(k,v){IM.items.forEach(x=>{if(x.k==k)x.sel=!!v});lst()}
+function imC(){const b=$('#im_go');if(b)b.textContent='Importa '+IM.items.filter(x=>x.sel).length+' polizze'}
+function imH(){
+ if(IM.dups)return dupH();
+ if(IM.busy)return'<div class="card"><p>Lettura del file in corso…</p></div>';
+ const pick=`<div class="card"><h2>Importa da Excel</h2><p style="color:var(--m);font-size:13px">Scegli il file estratto con i fogli "Dettaglio polizze Vita" e "Dettaglio polizze Danni" (anche due file insieme). Non viene salvato nulla finché non confermi.</p><input type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple onchange="imRead(this.files)"><button class="s" onclick="imX()">Annulla</button></div>`;
+ if(!IM.items)return(IM.err?`<div class="warn">${IM.err.map(e=>h(e)).join('<br>')}</div>`:'')+pick;
+ const it=IM.items,K=k=>it.filter(x=>x.k==k).length,nS=it.filter(x=>x.sel).length,sm=(x,i)=>`<label class="ck"><input type="checkbox" ${x.sel?'checked':''} onchange="imT(${i})"><span style="flex:1;min-width:0"><b>${h(x.r.cliente)}</b> · ${h(x.r.polizza)}<small style="display:block;color:var(--m)">${x.r.data} · ${x.r.tipo=='V'?'Vita':'Danni'} · ${h(x.r.prodotto)}${x.r.titolo?' · '+h(x.r.titolo):''}</small>${(x.d||[]).map(d=>`<small style="display:block">${h(d[0])}: ${h(d[1])} → <b>${h(d[2])}</b></small>`).join('')}${x.w.map(w=>`<small style="display:block;color:var(--r)">⚠ ${h(w)}</small>`).join('')}${x.dups.map(w=>`<small style="display:block;color:#b25e00">⚠ ${h(w)}</small>`).join('')}</span><span style="text-align:right;white-space:nowrap"><b>${E2(x.f.isP)}</b><small style="display:block;color:var(--m)">rata ${E2(x.f.isR+x.f.incNC+x.f.maggAgg)}</small></span></label>`;
+ const list=k=>it.map((x,i)=>x.k==k?sm(x,i):'').join('');
+ return`<div class="card"><h2>Anteprima importazione</h2>
+ <div class="row"><span>File</span><b style="text-align:right">${IM.names.map(n=>h(n)).join('<br>')}</b></div>
+ ${IM.bim?`<div class="row"><span>Bimestre</span><b>${h(IM.bim)}</b></div>`:''}
+ <div class="row"><span>Nuove polizze</span><b>${K('new')}</b></div>
+ <div class="row"><span>Già presenti, con differenze</span><b>${K('chg')}</b></div>
+ <div class="row"><span>Già presenti, uguali</span><b>${K('same')}</b></div>
+ <div class="row"><span>Possibili duplicati</span><b style="color:${it.some(x=>x.dups.length)||IM.orph.some(o=>o.dupOf)?'var(--r)':'inherit'}">${it.filter(x=>x.dups.length).length+IM.orph.filter(o=>o.dupOf).length}</b></div>
+ <div class="row"><span><span class="gd"></span>Solo nella tua app, non nel file</span><b>${IM.orph.length}</b></div>
+ ${IM.info.map(p=>`<div style="padding:8px 0;border-top:1px solid var(--l);font-size:13px"><b>${p.tipo=='V'?'Vita':'Danni'}</b>: ${p.rows.length} polizze · IS produzione ${E2(p.sum.isp)} · IS di rata ${E2(p.sum.isr+p.sum.inc+p.sum.agg)}<br><span style="color:${p.bad.length?'var(--r)':'var(--m)'}">${!p.tot?'Totale del file non trovato':p.bad.length?'⚠ Non coincide con il totale del file: controlla il file':'✓ Coincide con il totale del file'}</span></div>`).join('')}</div>
+ ${IM.errs.length?`<div class="warn">${IM.errs.slice(0,6).map(e=>h(e)).join('<br>')}${IM.errs.length>6?'<br>…':''}</div>`:''}
+ ${(n=>n?`<div class="warn">${n} possibili duplicati già presenti nella tua app: dopo l'importazione usa "Controlla duplicati" nella scheda Polizze.</div>`:'')(appDups().length)}
+ ${IM.yw?`<div class="warn">${IM.yw} polizze hanno un anno diverso da quello impostato (${I().anno}): non compaiono nel riepilogo finché non cambi anno in Impostazioni.</div>`:''}
+ ${IM.prods.length?`<div class="card"><h2>Prodotti non presenti nel tuo elenco</h2><p style="color:var(--m);font-size:13px">Se li crei vengono aggiunti alla scheda Prodotti con il moltiplicatore del file; potrai modificarli.</p>${IM.prods.map((p,i)=>`<label class="ck"><input type="checkbox" ${p.sel?'checked':''} onchange="IM.prods[${i}].sel=this.checked"><span style="flex:1"><b>${h(p.nome)}</b><small style="display:block;color:var(--m)">${p.tipo=='V'?'Vita':'Danni'} · ×${p.pond}${p.tipo=='V'&&p.inv?' · investimento':''} · ${p.n} polizze</small></span></label>`).join('')}</div>`:''}
+ ${IM.orph.length?`<details class="card"><summary><span class="gd"></span>${IM.orph.length} polizze presenti solo nella tua app</summary><p style="color:var(--m);font-size:13px">Non compaiono nel file importato: restano invariate e, dopo l'importazione, hanno il pallino verde nell'elenco Polizze.</p>${IM.orph.map(o=>`<div class="row"><span><span class="gd"></span>${h(o.cliente)} · ${h(o.polizza)}<small style="display:block;color:var(--m)">${String(o.data).slice(0,10)} · ${h(o.prodotto)}${isImp(o)?'':' · inserita a mano'}${o.dupOf?' · <span style="color:#b25e00">possibile duplicato di n. '+h(o.dupOf)+' del file</span>':''}</small></span><b>${E2(isPol(o).is)}</b></div>`).join('')}</details>`:''}
+ ${K('chg')?`<div class="card"><h2>Polizze con differenze</h2><p style="color:var(--m);font-size:13px">Sono già selezionate: tolgi la spunta a quelle che vuoi lasciare com'erano.</p><div class="seg"><button class="s" onclick="imAll('chg',1)">Aggiorna tutte</button><button class="s" onclick="imAll('chg',0)">Nessuna</button></div>${list('chg')}</div>`:''}
+ ${K('new')?`<div class="card"><h2>Nuove polizze</h2><div class="seg"><button class="s" onclick="imAll('new',1)">Tutte</button><button class="s" onclick="imAll('new',0)">Nessuna</button></div>${list('new')}</div>`:''}
+ ${K('same')?`<details class="card"><summary>${K('same')} polizze già presenti e uguali</summary>${it.map((x,i)=>x.k=='same'?`<div class="row"><span>${h(x.r.cliente)} · ${h(x.r.polizza)}</span><b>${E2(x.f.isP)}</b></div>`:'').join('')}</details>`:''}
+ <div style="position:sticky;bottom:calc(58px + env(safe-area-inset-bottom));padding:10px 0 2px;background:linear-gradient(rgba(250,248,245,0),var(--c) 35%);z-index:2"><button id="im_go" onclick="imGo()" style="margin:0">Importa ${nS} polizze</button></div><button class="s" onclick="imX()">Annulla</button>`}
+function imGo(){if(!IM||!IM.items)return;const sel=IM.items.filter(x=>x.sel);if(!sel.length){toast('Nessuna polizza selezionata',1);return}
+ const need=new Set(sel.filter(x=>!x.pr).map(x=>x.r.tipo+'|'+nz(x.r.prodotto))),mk=IM.prods.filter(p=>p.sel&&need.has(p.tipo+'|'+nz(p.nome)));
+ if(mk.length){mk.forEach(p=>S.prod.push({nome:p.nome,tipo:p.tipo,pond:p.pond,inv:p.inv,cat:p.tipo=='V'?((VC.find(c=>c[1]==+p.pond&&c[2]==+p.inv)||[''])[0]):'',plafP:'',plafR:'',rid:''}));keep();enq('saveProdotti',[S.prod],'prod')}
+ const L=sel.map(x=>x.ex?{...x.ex,...x.f}:{id:uid(),...x.f,sost:0,magg:0,plafP:'',plafR:'',rid:(x.pr&&x.pr.rid)||''});
+ IM.items.filter(x=>x.k=='same'&&!x.sel&&x.ex&&!isImp(x.ex)).forEach(x=>L.push({...x.ex,src:'imp',rep:x.f.rep||x.ex.rep||''}));
+ L.forEach(o=>{const i=S.pol.findIndex(p=>p.id==o.id);i<0?S.pol.push(o):S.pol[i]=o});
+ const t=Date.now();for(let i=0;i<L.length;i+=40)enq('savePolizzeBatch',[L.slice(i,i+40)],'imp'+t+'_'+i);
+ try{localStorage.rpMiss=JSON.stringify((IM.orph||[]).map(o=>o.id))}catch(e){}
+ const nS2=IM.items.filter(x=>x.k=='same').length,nD=IM.items.filter(x=>x.k=='new'&&!x.sel).length,nN=sel.filter(x=>!x.ex).length,bm=/^\d{2}\.(\d{2})\.(\d{4})$/.exec(IM.bim||'');if(bm&&+bm[2]==I().anno)selM=+bm[1]-1;IM=null;render();bk('im');toast('Importate '+nN+' nuove, aggiornate '+(sel.length-nN)+(nD?', '+nD+' nuove non importate':'')+' ✓')}
+/*IMP-END*/
+function setup(msg){show(0);$('#v0').innerHTML=`<div class="card"><h2>Collega Rappel</h2>${msg?`<div class="warn">${h(msg)}</div>`:''}<p style="color:var(--m);font-size:13px">Incolla il link dell'app web di Apps Script (finisce con /exec) e la chiave scelta in Code.gs.</p><label>Link /exec</label><input id="c_u" value="${h(CFG().u)}"><label>Chiave</label><input id="c_k" type="password" value="${h(CFG().k)}"><button onclick="cn()">Collega</button></div>`}
+function cn(){const nu=$('#c_u').value.trim();if(nu!==localStorage.rpU){delete localStorage.rpCache;delete localStorage.rpProd;OPS=[];sv_()}localStorage.rpU=$('#c_u').value.trim();localStorage.rpK=$('#c_k').value.trim();start()}
+function start(){if(!CFG().u){setup();return}
+ let C=null;try{C=JSON.parse(localStorage.rpCache||'null')}catch(e){}
+ if(C&&C.pol){try{set(C,false)}catch(e){C=null;$('#v0').innerHTML='<p>Caricamento…</p>'}}else $('#v0').innerHTML='<p>Caricamento…</p>';
+ (OPS.length?flush():Promise.resolve()).then(()=>api('getAll')).then(r=>{try{set(r,true)}catch(e){setup('Connessione riuscita, ma errore nella visualizzazione: '+(e&&e.message||e))}},
+  e=>{const m=String(e&&e.message||e);if(C&&!/chiave|configurato/i.test(m))toast('Offline: mostro gli ultimi dati salvati sul telefono',1);else setup('Errore di connessione: '+m+'. Controlla link e chiave.')})}
+if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(!ed&&!IM&&!OPS.length){location.reload()}else toast('Nuova versione pronta: chiudi e riapri l\'app')})}
+$('#v1').addEventListener('input',e=>{if(ed&&/^f_/.test(e.target.id||''))bzMark()});
+$('#v1').addEventListener('change',e=>{if(ed&&/^f_/.test(e.target.id||''))bzMark()});
+window.addEventListener('beforeunload',e=>{if(ed&&BZ.d){bzWrite();e.preventDefault();e.returnValue=''}});
+window.addEventListener('pagehide',()=>{if(ed&&BZ.d)bzWrite()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&ed&&BZ.d)bzWrite()});
+hs({v:0},1);
+start();
+setTimeout(bzCheck,300);
+</script></body></html>
